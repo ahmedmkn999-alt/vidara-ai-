@@ -10,13 +10,9 @@ const handler = NextAuth({
   ],
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    // تم إضافة هذه الـ callbacks لضمان استقرار الجلسة وتجنب أخطاء السيرفر
-    async session({ session }) { 
-      return session; 
-    },
-    async redirect({ url, baseUrl }) {
-      return baseUrl + "/dashboard"; // يوجه المستخدم للاستوديو فور تسجيل الدخول
-    }
+    async session({ session }) { return session; },
+    // هذا الجزء يضمن دخول المستخدم للاستوديو فور التسجيل
+    async redirect({ baseUrl }) { return baseUrl + "/dashboard"; }
   },
 });
 
