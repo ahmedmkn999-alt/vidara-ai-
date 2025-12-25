@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0b0f19;
+  --foreground: #ffffff;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* إضافة تأثيرات إضافية للأزرار */
+.btn-gradient {
+  background: linear-gradient(to right, #9333ea, #2563eb);
+  transition: transform 0.2s ease-in-out;
+}
+
+.btn-gradient:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
