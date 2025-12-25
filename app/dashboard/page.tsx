@@ -1,18 +1,16 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-// إضافة مكتبة الرفع
 import { Widget } from "@uploadcare/react-widget";
 
 export default function Dashboard() {
   const { data: session } = useSession();
   const [freeTrials, setFreeTrials] = useState(3);
-  const [imageUrl, setImageUrl] = useState(""); // لتخزين رابط الصورة المرفوعة
+  const [imageUrl, setImageUrl] = useState("");
 
   const handleGenerate = () => {
     if (freeTrials > 0) {
       alert("جاري التوليد باستخدام Replicate...");
-      // هنا الكود بيربط بمفتاح REPLICATE_API_TOKEN تلقائياً من خلال السيرفر
       setFreeTrials(freeTrials - 1);
     }
   };
@@ -30,16 +28,17 @@ export default function Dashboard() {
       </div>
       
       <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-        {/* قسم تحريك الصور - الآن يعمل! */}
         <div className={`bg-[#161b2a] p-10 rounded-[40px] border border-gray-800 shadow-xl transition ${freeTrials === 0 ? 'opacity-40 grayscale' : 'hover:border-purple-500'}`}>
           <h2 className="text-xl font-bold mb-6 text-purple-400">١. تحريك صورة 📸</h2>
           
           <div className="bg-gray-900 p-6 rounded-3xl border-2 border-dashed border-gray-700 mb-6 text-center">
-            {/* أداة الرفع الحقيقية التي تستخدم مفتاحك من Vercel */}
+            {/* التعديل هنا: استخدمنا onChange بدلاً من onFileSelect لتجنب الخطأ */}
             <Widget 
               publicKey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY} 
-              onFileSelect={(file) => {
-                file?.done((info) => setImageUrl(info.cdnUrl));
+              onChange={(info) => {
+                if (info) {
+                  setImageUrl(info.cdnUrl);
+                }
               }}
             />
             <p className="mt-2 text-sm text-gray-500">اضغط بالأعلى لرفع الصورة</p>
@@ -54,7 +53,6 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* قسم نص إلى فيديو */}
         <div className={`bg-[#161b2a] p-10 rounded-[40px] border border-gray-800 shadow-xl transition ${freeTrials === 0 ? 'opacity-40 grayscale' : 'hover:border-blue-500'}`}>
           <h2 className="text-xl font-bold mb-6 text-blue-400">٢. نص إلى فيديو ✍️</h2>
           <textarea placeholder="اوصف الفيديو الذي تريده..." className="w-full bg-gray-900 rounded-2xl p-4 h-40 text-right outline-none focus:border-blue-500 transition"></textarea>
@@ -67,13 +65,7 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
-
-      {freeTrials === 0 && (
-        <div className="mt-12 p-8 bg-red-900/20 border border-red-500/50 rounded-[35px] text-center max-w-2xl mx-auto">
-          <p className="text-red-400 font-bold text-xl mb-4">خلصت فيديوهاتك الهدية 😢</p>
-          <a href="/#pricing" className="bg-green-600 px-10 py-4 rounded-full font-bold shadow-xl shadow-green-900/20 hover:bg-green-700 transition inline-block">اشترك الآن في باقات برو</a>
-        </div>
-      )}
     </div>
   );
-}
+             }
+              
