@@ -1,64 +1,57 @@
 "use client";
-import { useState } from 'react';
+import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 export default function Dashboard() {
-  const [loading, setLoading] = useState(false);
+  const { data: session } = useSession();
+  const [freeTrials, setFreeTrials] = useState(3); // عداد الـ 3 فيديوهات الهدية
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-white p-6 lg:p-12 text-right font-sans">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-12 border-b border-gray-800 pb-6">
-        <div className="bg-purple-900/20 px-4 py-2 rounded-full border border-purple-500/30 text-purple-400 text-sm font-bold">
-          باقة برو نشطة ✅
+    <div className="min-h-screen bg-[#0b0f19] text-white p-8 text-right font-sans">
+      <div className="flex justify-between items-center mb-10 border-b border-gray-800 pb-5">
+        <div className="flex items-center gap-4">
+           {/* عداد الهدايا للمسجلين الجدد */}
+           <div className="bg-yellow-900/20 border border-yellow-500/50 px-4 py-1 rounded-full">
+             <span className="text-yellow-500 font-bold text-sm">هدية التسجيل: {freeTrials} فيديوهات متبقية 🎁</span>
+           </div>
+           <span className="text-purple-400 font-bold underline italic">أهلاً، {session?.user?.name || "المبدع"} 👋</span>
         </div>
-        <h1 className="text-3xl font-black bg-gradient-to-l from-purple-400 to-blue-500 bg-clip-text text-transparent italic">
-          استوديو Vidara
-        </h1>
+        <h1 className="text-2xl font-black bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent italic">استوديو Vidara</h1>
       </div>
-
+      
       <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-        {/* الخيار الأول: صورة إلى فيديو */}
-        <div className="bg-[#161b2a] p-8 rounded-[40px] border border-gray-800 hover:border-purple-500/50 transition shadow-2xl">
-          <h2 className="text-xl font-bold mb-6 text-purple-400">١. تحريك صورة (Image to Video)</h2>
-          <div className="bg-gray-900 border-2 border-dashed border-gray-700 rounded-3xl p-10 text-center mb-6 cursor-pointer hover:bg-gray-800 transition">
-            <p className="text-gray-500 font-bold">اضغط لرفع الصورة المراد تحريكها 📸</p>
-          </div>
-          <textarea 
-            placeholder="اوصف الحركة هنا (مثلاً: خلي الشخص يبتسم ويحرك راسه)" 
-            className="w-full bg-gray-900 rounded-2xl p-4 border border-gray-800 h-32 text-right outline-none focus:border-purple-500"
-          ></textarea>
+        {/* قسم تحريك الصور */}
+        <div className={`bg-[#161b2a] p-10 rounded-[40px] border border-gray-800 shadow-xl transition ${freeTrials === 0 ? 'opacity-40 grayscale' : 'hover:border-purple-500'}`}>
+          <h2 className="text-xl font-bold mb-6 text-purple-400">١. تحريك صورة 📸</h2>
+          <div className="bg-gray-900 h-40 rounded-3xl border-2 border-dashed border-gray-700 flex items-center justify-center mb-6 cursor-pointer">ارفع الصورة هنا</div>
           <button 
-            disabled={loading}
-            className="w-full mt-6 bg-purple-600 py-4 rounded-2xl font-bold shadow-lg shadow-purple-900/20 hover:scale-105 transition"
+            disabled={freeTrials === 0}
+            className="w-full bg-purple-600 py-4 rounded-2xl font-bold shadow-lg shadow-purple-900/20"
           >
-            {loading ? "جاري المعالجة..." : "صناعة فيديو من الصورة"}
+            {freeTrials > 0 ? "صناعة فيديو (مجاني)" : "اشترك لتكمل"}
           </button>
         </div>
 
-        {/* الخيار الثاني: نص إلى فيديو */}
-        <div className="bg-[#161b2a] p-8 rounded-[40px] border border-gray-800 hover:border-blue-500/50 transition shadow-2xl">
-          <h2 className="text-xl font-bold mb-6 text-blue-400">٢. نص إلى فيديو (Text to Video)</h2>
-          <textarea 
-            placeholder="اكتب وصف الفيديو اللي في خيالك بالتفصيل... (مثلاً: رائد فضاء يمشي على المريخ في وقت الغروب)" 
-            className="w-full bg-gray-900 rounded-2xl p-4 border border-gray-800 h-64 text-right outline-none focus:border-blue-500"
-          ></textarea>
+        {/* قسم تحويل النص لفيديو */}
+        <div className={`bg-[#161b2a] p-10 rounded-[40px] border border-gray-800 shadow-xl transition ${freeTrials === 0 ? 'opacity-40 grayscale' : 'hover:border-blue-500'}`}>
+          <h2 className="text-xl font-bold mb-6 text-blue-400">٢. نص إلى فيديو ✍️</h2>
+          <textarea placeholder="اوصف الفيديو الذي تريده..." className="w-full bg-gray-900 rounded-2xl p-4 h-40 text-right outline-none focus:border-blue-500 transition"></textarea>
           <button 
-            disabled={loading}
-            className="w-full mt-6 bg-blue-600 py-4 rounded-2xl font-bold shadow-lg shadow-blue-900/20 hover:scale-105 transition"
+            disabled={freeTrials === 0}
+            className="w-full bg-blue-600 py-4 rounded-2xl font-bold mt-6 shadow-lg shadow-blue-900/20"
           >
-            {loading ? "جاري التخيل..." : "حول النص لفيديو خيالي"}
+            {freeTrials > 0 ? "توليد من النص (مجاني)" : "انتهت هداياك"}
           </button>
         </div>
       </div>
 
-      {/* منطقة عرض النتائج */}
-      <div className="mt-16 text-center">
-        <h3 className="text-gray-500 mb-8 italic">الفيديوهات اللي صنعتها هتظهر هنا 👇</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-           {/* هنا هيتم عرض الفيديوهات الجاهزة */}
-           <div className="aspect-video bg-gray-900 rounded-2xl border border-gray-800 flex items-center justify-center text-xs text-gray-700 font-bold italic">قيد الانتظار...</div>
+      {/* رسالة تظهر عند انتهاء الـ 3 فيديوهات */}
+      {freeTrials === 0 && (
+        <div className="mt-12 p-8 bg-red-900/20 border border-red-500/50 rounded-[35px] text-center max-w-2xl mx-auto">
+          <p className="text-red-400 font-bold text-xl mb-4">خلصت فيديوهاتك الهدية 😢</p>
+          <a href="/#pricing" className="bg-green-600 px-10 py-4 rounded-full font-bold shadow-xl shadow-green-900/20 hover:bg-green-700 transition inline-block">اشترك الآن في باقات برو</a>
         </div>
-      </div>
+      )}
     </div>
   );
 }
