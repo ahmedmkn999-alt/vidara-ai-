@@ -1,7 +1,7 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-import { supabase } from "../../../lib/supabase"; // المسار الصحيح
+import { supabase } from "../../lib/supabase"; // تم تصحيح المسار
 import { Widget } from "@uploadcare/react-widget";
 
 export default function Dashboard() {
@@ -19,31 +19,33 @@ export default function Dashboard() {
   }, [session]);
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-white p-6 text-right font-sans" dir="rtl">
-      <h1 className="text-2xl font-black text-purple-500 mb-8 italic">Vidara Studio</h1>
+    <div className="min-h-screen bg-[#0b0f19] text-white p-6 md:p-10 text-right font-sans" dir="rtl">
+      <div className="flex justify-between items-center mb-10 border-b border-gray-800 pb-5">
+        <h1 className="text-2xl font-black text-purple-500 italic">Vidara Studio</h1>
+        <span className="text-gray-400 text-xs italic">أهلاً، {session?.user?.name || "المبدع"} 👋</span>
+      </div>
       
-      {/* صندوق الوارد للعميل */}
-      <section className="bg-[#161b2a] p-6 rounded-[30px] border border-purple-500/20 mb-10 shadow-xl">
-        <h2 className="text-lg font-bold mb-4">📬 رسائلك الواردة (الأكواد)</h2>
-        {messages.length === 0 ? <p className="text-gray-500 text-sm italic">لا توجد رسائل حالياً.</p> : 
+      <section className="bg-[#161b2a] p-6 rounded-[35px] border border-purple-500/20 mb-10 shadow-2xl">
+        <h2 className="text-lg font-bold mb-6 flex items-center gap-2">📬 رسائلك الواردة (الأكواد)</h2>
+        {messages.length === 0 ? <p className="text-gray-500 text-sm italic">لا توجد رسائل حالياً. اطلب كود التفعيل من صفحة الدفع.</p> : 
           <div className="grid gap-3">
             {messages.map((m) => (
-              <div key={m.id} className="bg-gray-900 p-4 rounded-2xl border border-gray-800 flex justify-between items-center">
-                <span className="text-lg font-mono text-green-400 font-bold tracking-widest">{m.activation_code}</span>
-                <span className="text-[10px] bg-green-900/20 text-green-500 px-3 py-1 rounded-full">جاهز ✅</span>
+              <div key={m.id} className="bg-gray-900 p-5 rounded-2xl border border-gray-800 flex justify-between items-center shadow-lg">
+                <p className="text-xl font-mono text-green-400 font-black tracking-[4px] select-all cursor-pointer">{m.activation_code}</p>
+                <span className="text-[10px] bg-green-900/20 text-green-500 px-4 py-1 rounded-full border border-green-500/20">جاهز ✅</span>
               </div>
             ))}
           </div>
         }
       </section>
 
-      {/* أدوات التوليد */}
-      <div className="bg-[#161b2a] p-8 rounded-[35px] border border-gray-800">
-         <h2 className="text-xl font-bold mb-6 text-purple-400 text-center">ابدأ الإبداع 🎬</h2>
-         <div className="bg-gray-900 p-10 rounded-3xl border-2 border-dashed border-gray-700 text-center">
+      <div className="bg-[#161b2a] p-8 rounded-[40px] border border-gray-800 text-center shadow-2xl">
+         <h2 className="text-xl font-bold mb-6 text-purple-400">ابدأ توليد الفيديو 🎬</h2>
+         <div className="bg-gray-900 p-10 rounded-3xl border-2 border-dashed border-gray-700 mb-6 flex justify-center items-center">
             <Widget publicKey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY} />
          </div>
+         <p className="text-gray-500 text-sm italic">ارفع صورة وابدأ السحر باستخدام كود التفعيل الخاص بك.</p>
       </div>
     </div>
   );
-            }
+}
