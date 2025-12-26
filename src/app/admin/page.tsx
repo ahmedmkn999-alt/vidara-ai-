@@ -1,79 +1,107 @@
 "use client";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "../../lib/supabase"; // ده السطر اللي كان عامل المشكلة وتصلح
 
 export default function AdminPanel() {
-  const { data: session } = useSession();
-  const [generatedCode, setGeneratedCode] = useState("");
-  const [selectedUserEmail, setSelectedUserEmail] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [password, setPassword] = useState("");
+  const [activeTab, setActiveTab] = useState("requests");
+  const [requests, setRequests] = useState([]);
+  const [sentCodes, setSentCodes] = useState([]);
 
-  const ADMIN_EMAIL = "ahmed.p@gmail.com"; //
-
-  // مثال لرسائل طلبات الاشتراك التي ستصلك
-  const [requests, setRequests] = useState([
-    { id: 1, email: "user1@gmail.com", phone: "01022334455", screenshot: "https://ucarecdn.com/example", date: "1:40 AM" }
-  ]);
-
-  // دالة توليد كود عشوائي فريد
-  const handleGenerateCode = (email) => {
-    const newCode = "VIDARA-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-    setGeneratedCode(newCode);
-    setSelectedUserEmail(email);
+  // كلمة السر اللي طلبتها
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (password === "adminahmed") {
+      setIsAdmin(true);
+      fetchData();
+    } else {
+      alert("كلمة السر غلط يا ريس!");
+    }
   };
 
-  const handleSendToUser = () => {
-    if (!generatedCode) return alert("من فضلك ولد الكود أولاً");
-    // هنا سيتم إرسال الكود لقاعدة البيانات ليربط بحساب المستخدم
-    alert(`تم إرسال الكود ${generatedCode} إلى رسائل المستخدم: ${selectedUserEmail}`);
-    setGeneratedCode("");
+  const fetchData = async () => {
+    const { data: reqs } = await supabase.from('payment_requests').select('*').order('created_at', { ascending: false });
+    const { data: codes } = await supabase.from('user_inbox').select('*').order('created_at', { ascending: false });
+    if (reqs) setRequests(reqs);
+    if (codes) setSentCodes(codes);
   };
 
-  if (session?.user?.email !== ADMIN_EMAIL) return <p className="text-white text-center mt-20">غير مسموح لك بالدخول</p>;
+  const sendActivationCode = async (email) => {
+    const code = "VIDARA-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const { error } = await supabase.from('user_inbox').insert([{ target_email: email, activation_code: code }]);
+    if (!error) {
+      alert("تم إرسال الكود بنجاح: " + code);
+      fetchData();
+    }
+  };
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6 text-right">
+        <form onSubmit={handleLogin} className="bg-gray-900 p-10 rounded-[40px] border border-gray-800 w-full max-w-sm shadow-2xl">
+          <h2 className="text-2xl font-black text-purple-500 mb-8 text-center">دخول المدير 🔐</h2>
+          <input 
+            type="password" 
+            className="w-full bg-black p-4 rounded-2xl mb-6 border border-gray-800 text-center outline-none focus:border-purple-500 text-white" 
+            placeholder="كلمة السر"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button className="w-full bg-purple-600 py-4 rounded-2xl font-bold hover:bg-purple-700 transition">دخول</button>
+        </form>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-8 text-right font-sans" dir="rtl">
-      <h1 className="text-3xl font-black mb-10 border-b border-gray-800 pb-4 text-purple-500">غرفة إشراف VIDARA 🕵️‍♂️</h1>
+    <div className="min-h-screen bg-black text-white p-6 md:p-10 text-right font-sans" dir="rtl">
+      <header className="flex justify-between items-center mb-10 border-b border-gray-800 pb-6">
+        <h1 className="text-2xl font-black text-purple-400 italic">Vidara Admin 👑</h1>
+        <div className="flex bg-gray-900 p-1 rounded-2xl border border-gray-800">
+          <button onClick={() => setActiveTab("requests")} className={`px-5 py-2 rounded-xl text-xs font-bold ${activeTab === "requests" ? "bg-purple-600" : "text-gray-500"}`}>الطلبات 📥</button>
+          <button onClick={() => setActiveTab("codes")} className={`px-5 py-2 rounded-xl text-xs font-bold ${activeTab === "codes" ? "bg-blue-600" : "text-gray-500"}`}>الأكواد 📑</button>
+        </div>
+      </header>
 
-      {/* الجزء الخاص بتوليد الكود */}
-      {generatedCode && (
-        <div className="bg-purple-900/20 border border-purple-500 p-6 rounded-3xl mb-10 flex justify-between items-center">
-          <button 
-            onClick={handleSendToUser}
-            className="bg-green-600 px-8 py-3 rounded-xl font-bold hover:bg-green-700 transition"
-          >
-            تفعيل وإرسال الكود للمشترك
-          </button>
-          <div className="text-left">
-            <p className="text-xs text-purple-400">الكود المولد لـ: {selectedUserEmail}</p>
-            <p className="text-2xl font-mono font-black text-white">{generatedCode}</p>
-          </div>
+      {activeTab === "requests" ? (
+        <div className="grid gap-6">
+          {requests.map((req) => (
+            <div key={req.id} className="bg-[#161b2a] p-6 rounded-[30px] border border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="text-right w-full">
+                <p className="font-bold text-lg">{req.email}</p>
+                <p className="text-sm text-blue-400 font-mono">الرقم: {req.phone}</p>
+              </div>
+              <div className="flex gap-2 w-full md:w-auto">
+                <a href={req.screenshot_url} target="_blank" className="flex-1 bg-gray-800 text-center py-3 rounded-xl text-xs font-bold px-4">معاينة الإيصال</a>
+                <button onClick={() => sendActivationCode(req.email)} className="flex-1 bg-purple-600 py-3 rounded-xl text-xs font-bold px-4 shadow-lg shadow-purple-900/20">إرسال كود</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-3xl border border-gray-800">
+          <table className="w-full text-sm text-right bg-gray-900/30">
+            <thead className="bg-gray-800 text-gray-400">
+              <tr>
+                <th className="p-4">الإيميل</th>
+                <th className="p-4">كود التفعيل</th>
+                <th className="p-4 text-xs">التاريخ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sentCodes.map((c) => (
+                <tr key={c.id} className="border-t border-gray-800">
+                  <td className="p-4">{c.target_email}</td>
+                  <td className="p-4 font-mono text-green-400 font-bold">{c.activation_code}</td>
+                  <td className="p-4 text-[10px] text-gray-500">{new Date(c.created_at).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
-
-      <h2 className="text-xl font-bold mb-6">طلبات التفعيل الجديدة:</h2>
-      <div className="grid gap-6">
-        {requests.map((req) => (
-          <div key={req.id} className="bg-gray-900 p-6 rounded-[35px] border border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex gap-3">
-               <button 
-                 onClick={() => handleGenerateCode(req.email)}
-                 className="bg-purple-600 px-6 py-2 rounded-xl text-sm font-bold hover:scale-105 transition"
-               >
-                 توليد كود تفعيل
-               </button>
-               <a href={req.screenshot} target="_blank" className="bg-gray-800 border border-gray-700 px-6 py-2 rounded-xl text-sm font-bold">
-                 معاينة الإسكرين
-               </a>
-            </div>
-            
-            <div className="text-right">
-              <p className="font-bold text-lg">{req.email}</p>
-              <p className="text-sm text-gray-400">رقم المحول منه: <span className="text-blue-400">{req.phone}</span></p>
-              <p className="text-[10px] text-gray-600">وقت الطلب: {req.date}</p>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
-}
+      }
+                  
